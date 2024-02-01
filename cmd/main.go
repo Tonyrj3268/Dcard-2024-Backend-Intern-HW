@@ -2,10 +2,10 @@ package main
 
 import (
 	"advertisement-api/internal/model"
+	"advertisement-api/internal/router"
 
 	"os"
 
-	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -30,13 +30,7 @@ func main() {
 	if migrateErr != nil {
 		panic(migrateErr)
 	}
-	app := gin.Default()
-	app.GET("/hello/:name", func(c *gin.Context) {
-		name := c.Param("name")
-		c.JSON(200, gin.H{
-			"message": "hello " + name,
-		})
-	})
+	app := router.SetupRouter()
 	server_err := app.Run(":8080")
 	if server_err != nil {
 		panic(server_err)
