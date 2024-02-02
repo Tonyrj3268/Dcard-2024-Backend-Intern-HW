@@ -1,0 +1,37 @@
+// // Insert some initial data
+// ageStart1, ageEnd1 := 18, 25
+// ageStart2, ageEnd2 := 26, 35
+// ageStart3, ageEnd3 := 36, 45
+// ad1 := model.Advertisement{
+// 	Title: "Ad1", 
+// 	StartAt: time.Now(), 
+// 	EndAt: time.Now().Add(24 * time.Hour), 
+// 	AgeStart: &ageStart1, 
+// 	AgeEnd: &ageEnd1, 
+// 	Gender: datatypes.JSON([]byte(`["M", "F"]`)),
+// 	Country: datatypes.JSON([]byte(`["US", "CA"]`)), 
+// 	Platform: datatypes.JSON([]byte(`["ios", "android"]`)),
+// }
+// ad2 := model.Advertisement{
+// 	Title: "Ad2", 
+// 	StartAt: time.Now(), 
+// 	EndAt: time.Now().Add(48 * time.Hour), 
+// 	AgeStart: &ageStart2, 
+// 	AgeEnd: &ageEnd2, 
+// 	Gender: datatypes.JSON([]byte(`["M"]`)),
+// 	Country: datatypes.JSON([]byte(`["US", "JP"]`)), 
+// 	Platform: datatypes.JSON([]byte(`["ios"]`)),
+// }
+// ad3 := model.Advertisement{
+// 	Title: "Ad3", 
+// 	StartAt: time.Now(), 
+// 	EndAt: time.Now().Add(72 * time.Hour), 
+// 	AgeStart: &ageStart3, 
+// 	AgeEnd: &ageEnd3, 
+// 	Gender: datatypes.JSON([]byte(`["F"]`)), 
+// 	Country: datatypes.JSON([]byte(`["JP", "CA"]`)), 
+// 	Platform: datatypes.JSON([]byte(`["web"]`)),
+// }
+// db.Create(&ad1)
+// db.Create(&ad2)
+// db.Create(&ad3)

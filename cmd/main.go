@@ -22,18 +22,18 @@ func main() {
     dbDatabase := os.Getenv("POSTGRES_DB")
 
     dsn := "host=" + dbHost + " user=" + dbUser + " password=" + dbPassword + " dbname=" + dbDatabase + " sslmode=disable TimeZone=Asia/Taipei"
-    db, connect_err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-    if connect_err != nil {
-        panic(connect_err)
+    db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+    if err != nil {
+        panic(err)
     }
-	migrateErr := db.AutoMigrate(&model.Advertisement{})
-	if migrateErr != nil {
-		panic(migrateErr)
-	}
-	app := router.SetupRouter()
-	server_err := app.Run(":8080")
-	if server_err != nil {
-		panic(server_err)
+	
+	if err := db.AutoMigrate(&model.Advertisement{}); err != nil {
+        panic(err)
+    }
+
+	app := router.SetupRouter(db)
+	if err := app.Run(":8080");err != nil {
+		panic(err)
 	}
 
 }

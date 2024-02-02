@@ -1,12 +1,24 @@
 package controller
 
 import (
+	"advertisement-api/internal/model"
+	"advertisement-api/internal/repository"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+type AdController struct {
+    adRepository repository.AdRepository
+}
+
+func NewAdController(adRepo repository.AdRepository) *AdController {
+    return &AdController{
+        adRepository: adRepo,
+    }
+}
 
 type AdGetRequest struct {
     Offset   *int    `form:"offset" binding:"omitempty"`
@@ -30,7 +42,8 @@ type AdCreationRequest struct {
     EndAt      time.Time    `json:"endAt" binding:"required" time_format:"2024-12-10T03:00:00.000Z"`
     Conditions AdCondition  `json:"conditions" binding:"omitempty"`
 }
-func GetAd(c *gin.Context) {
+
+func(a *AdController) GetAd(c *gin.Context) {
 	var adReq AdGetRequest
     err := c.ShouldBind(&adReq)
 	if err != nil {
@@ -47,10 +60,16 @@ func GetAd(c *gin.Context) {
         defaultLimit := 5
         adReq.Limit = &defaultLimit
     }
-	c.JSON(http.StatusOK, gin.H{"message": "get"})
+    ads, err := a.adRepository.GetActiveAdvertisements(adReq.Age, adReq.Gender, adReq.Country, adReq.Platform, *adReq.Offset, *adReq.Limit)
+    if err != nil {
+        fmt.Println(err)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    c.JSON(http.StatusOK, ads)
 }
 
-func CreateAd(c *gin.Context) {
+func(a *AdController) CreateAd(c *gin.Context) {
     var adCreate AdCreationRequest
     err := c.ShouldBindJSON(&adCreate)
     if err != nil {
@@ -58,7 +77,30 @@ func CreateAd(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "create",
-	})
+    // 避免 nil pointer dereference
+    gender, country, platform := []string{}, []string{}, []string{}
+    if adCreate.Conditions.Gender != nil {
+        gender = *adCreate.Conditions.Gender
+    }
+    if adCreate.Conditions.Country != nil {
+        country = *adCreate.Conditions.Country
+    }
+    if adCreate.Conditions.Platform != nil {
+        platform = *adCreate.Conditions.Platform
+    }
+
+    ad := model.Advertisement{
+        Title:     adCreate.Title,
+        StartAt:   adCreate.StartAt,
+        EndAt:     adCreate.EndAt,
+        Gender:    gender,
+        Country:   country,
+        Platform:  platform,
+    }
+    if err := a.adRepository.CreateAdvertisement(&ad); err != nil {
+        fmt.Println(err)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+        c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
