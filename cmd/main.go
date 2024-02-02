@@ -6,6 +6,8 @@ import (
 
 	"os"
 
+	"github.com/chenyahui/gin-cache/persist"
+	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -31,7 +33,13 @@ func main() {
         panic(err)
     }
 
-	app := router.SetupRouter(db)
+    redisStore := persist.NewRedisStore(redis.NewClient(&redis.Options{
+		Network: "tcp",
+		Addr:    "redis:6379",
+		DB: 0,
+	}))
+
+	app := router.SetupRouter(db,redisStore)
 	if err := app.Run(":8080");err != nil {
 		panic(err)
 	}
