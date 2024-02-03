@@ -15,7 +15,7 @@
     }
   },
 
-  "postCreateCommand": "go mod download"
+  "postCreateCommand": "go mod download && bash scripts/init_redis.sh"
 
   // Features to add to the dev container. More info: https://containers.dev/features.
   // "features": {},
