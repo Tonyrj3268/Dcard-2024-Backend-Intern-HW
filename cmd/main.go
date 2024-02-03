@@ -6,6 +6,7 @@ import (
 
 	"os"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -30,8 +31,12 @@ func main() {
 	if err := db.AutoMigrate(&model.Advertisement{}); err != nil {
         panic(err)
     }
-
-	app := router.SetupRouter(db)
+    rdb := redis.NewClient(&redis.Options{
+        Addr:     "localhost:6379", // Redis地址
+        Password: "", // 如果設置了Redis密碼
+        DB:       0,  // 默認數據庫編號
+    })
+	app := router.SetupRouter(db, rdb)
 	if err := app.Run(":8080");err != nil {
 		panic(err)
 	}

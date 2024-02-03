@@ -15,7 +15,7 @@
     }
   },
 
-  "postCreateCommand": "go mod download && bash scripts/init_redis.sh"
+  "postCreateCommand": "go mod download && bash scripts/init_redis.sh && bash scripts/init_pgsql.sh"
 
   // Features to add to the dev container. More info: https://containers.dev/features.
   // "features": {},
