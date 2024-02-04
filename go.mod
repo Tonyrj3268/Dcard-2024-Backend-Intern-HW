@@ -18,6 +18,7 @@ require (
 )
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenyahui/gin-cache v1.9.0
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect

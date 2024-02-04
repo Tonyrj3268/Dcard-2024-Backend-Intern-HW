@@ -32,7 +32,7 @@ func main() {
         panic(err)
     }
     rdb := redis.NewClient(&redis.Options{
-        Addr:     "localhost:6379", // Redis地址
+        Addr:     "redis:6379", // Redis地址
         Password: "", // 如果設置了Redis密碼
         DB:       0,  // 默認數據庫編號
     })

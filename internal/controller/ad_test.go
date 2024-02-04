@@ -9,6 +9,7 @@ import (
 
 	"time"
 
+	"advertisement-api/internal/dto"
 	"advertisement-api/internal/model"
 
 	"encoding/json"
@@ -24,9 +25,9 @@ type MockAdRepository struct {
     mock.Mock
 }
 
-func (m *MockAdRepository) GetActiveAdvertisements(age *int, gender, country, platform *string, offset, limit int) ([]struct{Title string; EndAt time.Time}, error) {
-    args := m.Called(age, gender, country, platform, offset, limit)
-    return args.Get(0).([]struct{Title string; EndAt time.Time}), args.Error(1)
+func (m *MockAdRepository) GetActiveAdvertisements(now time.Time,adReq dto.AdGetRequest) ([]dto.AdGetResponse, error) {
+    args := m.Called(now,adReq)
+    return args.Get(0).([]dto.AdGetResponse), args.Error(1)
 }
 
 func (m *MockAdRepository) CreateAdvertisement(ad *model.Advertisement) error {
@@ -63,8 +64,8 @@ func TestGetAdMultipleCases(t *testing.T) {
 		{"offset=0&limit=10&age=25&gender=Unknown&country=US&platform=android", http.StatusBadRequest},
 		{"offset=0&limit=10&age=25&gender=M&country=XX&platform=android", http.StatusBadRequest},
 		{"offset=0&limit=10&age=25&gender=M&country=US&platform=alien", http.StatusBadRequest},
-		{"", http.StatusOK},
-		{"off=0&lim=10&ag=25&gen=M&cou=US&plat=android", http.StatusOK},
+		{"", http.StatusBadRequest},
+		{"off=0&lim=10&ag=25&gen=M&cou=US&plat=android", http.StatusBadRequest},
 		{"offset=&limit=&age=&gender=&country=&platform=", http.StatusBadRequest},
 		{"offset=0&limit=50&age=25&gender=M&country=US&platform=android&unknownParam=value", http.StatusOK},
 	}
@@ -72,7 +73,7 @@ func TestGetAdMultipleCases(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("Query: %s", tc.query), func(t *testing.T) {
             if tc.expectedStatus != http.StatusBadRequest {
-                mockAdRepo.On("GetActiveAdvertisements", mock.AnythingOfType("*int"),mock.AnythingOfType("*string"),mock.AnythingOfType("*string"),mock.AnythingOfType("*string"),mock.AnythingOfType("int"),mock.AnythingOfType("int")).Return([]struct{ Title string; EndAt time.Time }{}, nil)
+                mockAdRepo.On("GetActiveAdvertisements",mock.AnythingOfType("time.Time"), mock.AnythingOfType("dto.AdGetRequest")).Return([]dto.AdGetResponse{}, nil)
             }
 			req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ad?%s", tc.query), nil)
 			w := httptest.NewRecorder()
@@ -88,16 +89,16 @@ func TestGetAdMultipleCases(t *testing.T) {
 func TestCreateAd(t *testing.T) {
     testCases := []struct{
         name           string
-        adCreate       AdCreationRequest
+        adCreate       dto.AdCreationRequest
         mockReturn     error
         expectedStatus int
     }{
     {
         name: "should return 400 if title is missing",
-        adCreate: AdCreationRequest{
+        adCreate: dto.AdCreationRequest{
             StartAt: time.Now(),
             EndAt:   time.Now().Add(time.Hour),
-            Conditions: AdCondition{
+            Conditions: dto.AdCondition{
                 Gender:   &[]string{"M", "F"},
                 Country:  &[]string{"US", "GB"},
                 Platform: &[]string{"ios", "android"},
@@ -108,7 +109,7 @@ func TestCreateAd(t *testing.T) {
     },
     {
         name: "should return 200 if conditions are missing",
-        adCreate: AdCreationRequest{
+        adCreate: dto.AdCreationRequest{
             Title:   "Test Ad",
             StartAt: time.Now(),
             EndAt:   time.Now().Add(time.Hour),
@@ -118,11 +119,11 @@ func TestCreateAd(t *testing.T) {
     },
     {
         name: "should return 200 if all fields are valid",
-        adCreate: AdCreationRequest{
+        adCreate: dto.AdCreationRequest{
             Title:   "Test Ad",
             StartAt: time.Now(),
             EndAt:   time.Now().Add(time.Hour),
-            Conditions: AdCondition{
+            Conditions: dto.AdCondition{
                 Gender:   &[]string{"M", "F"},
                 Country:  &[]string{"US", "GB"},
                 Platform: &[]string{"ios", "android"},
@@ -133,11 +134,11 @@ func TestCreateAd(t *testing.T) {
     },
     {
         name: "should return 400 if start time is after end time",
-        adCreate: AdCreationRequest{
+        adCreate: dto.AdCreationRequest{
             Title:   "Test Ad",
             StartAt: time.Now().Add(time.Hour),
             EndAt:   time.Now(),
-            Conditions:  AdCondition{
+            Conditions:  dto.AdCondition{
                 Gender:   &[]string{"M", "F"},
                 Country:  &[]string{"US", "GB"},
                 Platform: &[]string{"ios", "android"},

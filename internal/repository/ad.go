@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"advertisement-api/internal/dto"
 	"advertisement-api/internal/model"
 	"time"
 
@@ -13,7 +14,7 @@ import (
 
 type AdRepository interface {
 	CreateAdvertisement(*model.Advertisement) error
-	GetActiveAdvertisements(*int, *string, *string, *string, int, int) ([]struct{Title string; EndAt time.Time}, error)
+	GetActiveAdvertisements(time.Time, dto.AdGetRequest) ([]dto.AdGetResponse, error)
 }
 
 type adRepository struct {
@@ -40,28 +41,27 @@ func (r adRepository)CreateAdvertisement(ad *model.Advertisement) error {
     return nil
 }
 
-func (r adRepository)GetActiveAdvertisements(age *int, gender, country, platform *string, offset, limit int) ([]struct{Title string; EndAt time.Time}, error) {
-    var ads []struct{Title string; EndAt time.Time}
-    now := time.Now()
+func (r adRepository)GetActiveAdvertisements(now time.Time, adReq dto.AdGetRequest) ([]dto.AdGetResponse, error) {
+    var ads []dto.AdGetResponse
 
     query := r.db.Model(&model.Advertisement{}).Where("start_at <= ? AND end_at >= ?", now, now)
-    if age != nil {
-        query = query.Where("? BETWEEN age_start AND age_end", *age)
+    if adReq.Age != nil {
+        query = query.Where("? BETWEEN age_start AND age_end", adReq.Age)
     }
 
-    if gender != nil{
-        query = query.Where("gender @> ?", pq.Array([]string{*gender}))
+    if adReq.Gender != nil{
+        query = query.Where("gender @> ?", pq.Array([]string{*adReq.Gender}))
     }
 
-    if country!= nil {
-        query = query.Where("country @> ?", pq.Array([]string{*country}))
+    if adReq.Country!= nil {
+        query = query.Where("country @> ?", pq.Array([]string{*adReq.Country}))
     }
 
-    if platform != nil{
-        query = query.Where("platform @> ?", pq.Array([]string{*platform}))
+    if adReq.Platform != nil{
+        query = query.Where("platform @> ?", pq.Array([]string{*adReq.Platform}))
     }
 
-    err := query.Select("title, end_at").Order("end_at ASC").Offset(offset).Limit(limit).Find(&ads).Error
+    err := query.Select("title, end_at").Order("end_at ASC").Offset(adReq.Offset).Limit(adReq.Limit).Find(&ads).Error
     return ads, err
 }
 
