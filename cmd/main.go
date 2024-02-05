@@ -3,6 +3,13 @@ package main
 import (
 	"advertisement-api/internal/model"
 	"advertisement-api/internal/router"
+	"advertisement-api/internal/utils"
+	"context"
+	"fmt"
+	"os/signal"
+	"sync"
+	"syscall"
+	"time"
 
 	"os"
 
@@ -12,6 +19,7 @@ import (
 	"gorm.io/gorm"
 )
 
+var wg sync.WaitGroup
 func main() {
 	if err := godotenv.Load(); err != nil {
         panic("Error loading .env file")
@@ -37,8 +45,21 @@ func main() {
         DB:       0,  // 默認數據庫編號
     })
 	app := router.SetupRouter(db, rdb)
-	if err := app.Run(":8080");err != nil {
-		panic(err)
-	}
+    
+    ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+    go utils.StartBackgroundTask(rdb, ctx)
+    
+	go func() {
+		if err := app.Run(":8080"); err != nil {
+			panic (err)
+		}
+	}()
+
+	<-ctx.Done()
+    fmt.Println("服務器關閉...")
+
+    time.Sleep(2 * time.Second)
 
 }

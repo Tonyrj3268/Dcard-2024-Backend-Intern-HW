@@ -20,7 +20,7 @@ Golang(Gin, Gorm), Docker, PostgreSQL, Redis, NGINX, DevContainer
 - 使用 Golang 作為後端語言
 - 使用 Gin 作為 Restful API 框架
 - 使用 Gorm 作為 ORM
-- - 有 Django 的開發經驗，因此選擇 Gorm 幫助開發
+  - 有 Django 的開發經驗，因此選擇 Gorm 幫助開發
 - 使用 PostgreSQL 作為資料庫
 - 使用 go-stress-testing 進行壓力測試
 
@@ -126,7 +126,8 @@ end
 
 每天 create 的廣告數量 不會超過 3000 個
 
-- 在容器啟動時，設定 redis 紀錄每日新增廣告數量為 0 和過期時間為當晚 12 點
+- ~~在容器啟動時，設定 redis 紀錄每日新增廣告數量為 0 和過期時間為當晚 12 點~~
+- 在啟動 server 的同時，啟動[定時器](./internal/utils/timer.go)，每天 24 點更新 redis 紀錄每日新增廣告數量為 0
 - 在 NGINX 的 lua 腳本中，添加了每日新增廣告數量的限制
 
 ```
