@@ -21,6 +21,17 @@ func NewAdController(adRepo repository.AdRepository) *AdController {
     }
 }
 
+// GetAd godoc
+// @Summary Get advertisements
+// @Description get advertisements by params and conditions
+// @Tags advertisements
+// @Accept json
+// @Produce json
+// @Param adGetRequest body dto.AdGetRequest true "Enter Advertisement Request Conditions"
+// @Success 200 {dto.AdGetRequest} AdGetResponse "success"
+// @Failure 400 {dto.AdGetRequest} json "{"error": "params error"}"
+// @Failure 500 {dto.AdGetRequest} json "{"error": "server error"}"
+// @Router /ad [get]
 func(a *AdController) GetAd(c *gin.Context) {
 	var adReq dto.AdGetRequest
     err := c.ShouldBind(&adReq)
@@ -38,6 +49,17 @@ func(a *AdController) GetAd(c *gin.Context) {
     c.JSON(http.StatusOK, ads)
 }
 
+// CreateAd godoc
+// @Summary Create advertisement
+// @Description create a new advertisement
+// @Tags advertisements
+// @Accept json
+// @Produce json
+// @Param adCreationRequest body dto.AdCreationRequest true "Create Advertisement"
+// @Success 200 {dto.AdCreationRequest} json "{"message": "success"}"
+// @Failure 400 {dto.AdCreationRequest} json "{"error": "params error"}"
+// @Failure 500 {dto.AdCreationRequest} json "{"error": "server error"}"
+// @Router /ad [post]
 func(a *AdController) CreateAd(c *gin.Context) {
     var adCreate dto.AdCreationRequest
     err := c.ShouldBindJSON(&adCreate)

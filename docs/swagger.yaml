@@ -1,0 +1,128 @@
+definitions:
+  dto.AdCondition:
+    properties:
+      ageEnd:
+        maximum: 100
+        minimum: 1
+        type: integer
+      ageStart:
+        maximum: 100
+        minimum: 1
+        type: integer
+      country:
+        items:
+          type: string
+        type: array
+      gender:
+        items:
+          type: string
+        type: array
+      platform:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.AdCreationRequest:
+    properties:
+      conditions:
+        $ref: '#/definitions/dto.AdCondition'
+      endAt:
+        type: string
+      startAt:
+        type: string
+      title:
+        type: string
+    required:
+    - endAt
+    - startAt
+    - title
+    type: object
+  dto.AdGetRequest:
+    properties:
+      age:
+        maximum: 100
+        minimum: 1
+        type: integer
+      country:
+        type: string
+      gender:
+        enum:
+        - M
+        - F
+        type: string
+      limit:
+        maximum: 100
+        minimum: 1
+        type: integer
+      offset:
+        type: integer
+      platform:
+        enum:
+        - android
+        - ios
+        - web
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /ad:
+    get:
+      consumes:
+      - application/json
+      description: get advertisements by params and conditions
+      parameters:
+      - description: Enter Advertisement Request Conditions
+        in: body
+        name: adGetRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdGetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: AdGetRequest
+        "400":
+          description: '{"error": "params error"}'
+          schema:
+            type: AdGetRequest
+        "500":
+          description: '{"error": "server error"}'
+          schema:
+            type: AdGetRequest
+      summary: Get advertisements
+      tags:
+      - advertisements
+    post:
+      consumes:
+      - application/json
+      description: create a new advertisement
+      parameters:
+      - description: Create Advertisement
+        in: body
+        name: adCreationRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdCreationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "success"}'
+          schema:
+            type: AdCreationRequest
+        "400":
+          description: '{"error": "params error"}'
+          schema:
+            type: AdCreationRequest
+        "500":
+          description: '{"error": "server error"}'
+          schema:
+            type: AdCreationRequest
+      summary: Create advertisement
+      tags:
+      - advertisements
+swagger: "2.0"

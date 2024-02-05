@@ -1,0 +1,191 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/ad": {
+            "get": {
+                "description": "get advertisements by params and conditions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "advertisements"
+                ],
+                "summary": "Get advertisements",
+                "parameters": [
+                    {
+                        "description": "Enter Advertisement Request Conditions",
+                        "name": "adGetRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AdGetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "type": "AdGetRequest"
+                        }
+                    },
+                    "400": {
+                        "description": "{\"error\": \"params error\"}",
+                        "schema": {
+                            "type": "AdGetRequest"
+                        }
+                    },
+                    "500": {
+                        "description": "{\"error\": \"server error\"}",
+                        "schema": {
+                            "type": "AdGetRequest"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "create a new advertisement",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "advertisements"
+                ],
+                "summary": "Create advertisement",
+                "parameters": [
+                    {
+                        "description": "Create Advertisement",
+                        "name": "adCreationRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AdCreationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"success\"}",
+                        "schema": {
+                            "type": "AdCreationRequest"
+                        }
+                    },
+                    "400": {
+                        "description": "{\"error\": \"params error\"}",
+                        "schema": {
+                            "type": "AdCreationRequest"
+                        }
+                    },
+                    "500": {
+                        "description": "{\"error\": \"server error\"}",
+                        "schema": {
+                            "type": "AdCreationRequest"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.AdCondition": {
+            "type": "object",
+            "properties": {
+                "ageEnd": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1
+                },
+                "ageStart": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1
+                },
+                "country": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "gender": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "platform": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.AdCreationRequest": {
+            "type": "object",
+            "required": [
+                "endAt",
+                "startAt",
+                "title"
+            ],
+            "properties": {
+                "conditions": {
+                    "$ref": "#/definitions/dto.AdCondition"
+                },
+                "endAt": {
+                    "type": "string"
+                },
+                "startAt": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.AdGetRequest": {
+            "type": "object",
+            "properties": {
+                "age": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1
+                },
+                "country": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string",
+                    "enum": [
+                        "M",
+                        "F"
+                    ]
+                },
+                "limit": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "platform": {
+                    "type": "string",
+                    "enum": [
+                        "android",
+                        "ios",
+                        "web"
+                    ]
+                }
+            }
+        }
+    }
+}

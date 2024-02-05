@@ -60,6 +60,6 @@ func main() {
 	<-ctx.Done()
     fmt.Println("服務器關閉...")
 
-    time.Sleep(2 * time.Second)
+    time.Sleep(1 * time.Second)
 
 }
