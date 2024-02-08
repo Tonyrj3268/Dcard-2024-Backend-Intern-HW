@@ -15,7 +15,10 @@
     }
   },
 
-  "postCreateCommand": "go mod download && bash scripts/init_pgsql.sh"
+  "features": {
+    "ghcr.io/devcontainers-contrib/features/k6:1": {}
+  },
+  "postCreateCommand": "go mod download"
 
   // Features to add to the dev container. More info: https://containers.dev/features.
   // "features": {},

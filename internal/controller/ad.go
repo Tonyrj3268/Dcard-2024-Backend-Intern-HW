@@ -64,21 +64,9 @@ func(a *AdController) CreateAd(c *gin.Context) {
     var adCreate dto.AdCreationRequest
     err := c.ShouldBindJSON(&adCreate)
     if err != nil {
-        fmt.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-    // 避免 nil pointer dereference
-    gender, country, platform := []string{}, []string{}, []string{}
-    if adCreate.Conditions.Gender != nil {
-        gender = *adCreate.Conditions.Gender
-    }
-    if adCreate.Conditions.Country != nil {
-        country = *adCreate.Conditions.Country
-    }
-    if adCreate.Conditions.Platform != nil {
-        platform = *adCreate.Conditions.Platform
-    }
 
     ad := model.Advertisement{
         Title:     adCreate.Title,
@@ -86,14 +74,22 @@ func(a *AdController) CreateAd(c *gin.Context) {
         EndAt:     adCreate.EndAt,
         AgeStart:  adCreate.Conditions.AgeStart,
         AgeEnd:    adCreate.Conditions.AgeEnd,
-        Gender:    gender,
-        Country:   country,
-        Platform:  platform,
+        // 避免 nil pointer dereference
+        Gender:    assignConditionValue(adCreate.Conditions.Gender),  
+        Country:   assignConditionValue(adCreate.Conditions.Country),
+        Platform:  assignConditionValue(adCreate.Conditions.Platform),
     }
     if err := a.adRepository.CreateAdvertisement(&ad); err != nil {
-        fmt.Println(err)
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
-        c.JSON(http.StatusOK, gin.H{"message": "success"})
+
+    c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+func assignConditionValue(condition *[]string) []string {
+    if condition != nil {
+        return *condition
+    }
+    return []string{}
 }

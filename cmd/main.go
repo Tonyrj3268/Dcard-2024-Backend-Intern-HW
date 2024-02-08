@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 
@@ -18,8 +17,6 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
-
-var wg sync.WaitGroup
 func main() {
 	if err := godotenv.Load(); err != nil {
         panic("Error loading .env file")
@@ -35,7 +32,12 @@ func main() {
     if err != nil {
         panic(err)
     }
-	
+	DB, err := db.DB()
+	if err != nil {
+		panic(err)
+	}
+	DB.SetMaxOpenConns(500)
+	DB.SetMaxIdleConns(100)
 	if err := db.AutoMigrate(&model.Advertisement{}); err != nil {
         panic(err)
     }
@@ -49,7 +51,7 @@ func main() {
     ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-    go utils.StartBackgroundTask(rdb, ctx)
+    go utils.StartBackgroundTask(rdb, db, ctx)
     
 	go func() {
 		if err := app.Run(":8080"); err != nil {
