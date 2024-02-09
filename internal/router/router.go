@@ -16,7 +16,7 @@ import (
 func SetupRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 	gin.SetMode(gin.DebugMode)
 	r := gin.Default()
-	adRepo := repository.NewAdRepository(db,rdb)
+	adRepo := repository.NewAdRepository(db)
 	adController := controller.NewAdController(adRepo)
 	
 	var group = r.Group("/api/v1") 
@@ -26,7 +26,6 @@ func SetupRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 				"message": "pong",
 			})
 		})
-		// group.GET("docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 		group.GET("ad", adController.GetAd)
 		group.POST("ad", adController.CreateAd)
 	}

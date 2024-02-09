@@ -28,7 +28,7 @@ func main() {
     dbDatabase := os.Getenv("POSTGRES_DB")
 
     dsn := "host=" + dbHost + " user=" + dbUser + " password=" + dbPassword + " dbname=" + dbDatabase + " sslmode=disable TimeZone=Asia/Taipei"
-    db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+    db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{PrepareStmt: true})
     if err != nil {
         panic(err)
     }
@@ -41,6 +41,9 @@ func main() {
 	if err := db.AutoMigrate(&model.Advertisement{}); err != nil {
         panic(err)
     }
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_advertisements_gender ON advertisements USING gin(gender)")
+    db.Exec("CREATE INDEX IF NOT EXISTS idx_advertisements_country ON advertisements USING gin(country)")
+    db.Exec("CREATE INDEX IF NOT EXISTS idx_advertisements_platform ON advertisements USING gin(platform)")
     rdb := redis.NewClient(&redis.Options{
         Addr:     "redis:6379", // Redis地址
         Password: "", // 如果設置了Redis密碼

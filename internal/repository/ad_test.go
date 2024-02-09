@@ -12,7 +12,6 @@ import (
 	"advertisement-api/internal/dto"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/go-redis/redis/v8"
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/postgres"
@@ -36,9 +35,8 @@ func TestMain(m *testing.M) {
 		panic("failed to open gorm db")
 	}
 
-	fakeRedis := redis.NewClient(&redis.Options{})
 
-	repo = NewAdRepository(gormDB, fakeRedis)
+	repo = NewAdRepository(gormDB)
 
 	os.Exit(m.Run())
 }

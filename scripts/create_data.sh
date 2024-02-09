@@ -2,24 +2,37 @@
 
 source .env
 
+# 生成具有随机元素的 PostgreSQL 数组
 generate_pg_array() {
-    arr=("$@")
-    pg_array="{"  # 开始一个 PostgreSQL 数组
+    local all_elements=("$@")  # 接收所有可能的元素
+    local selected_elements=()  # 存储将要选择的元素
+    local num_elements=${#all_elements[@]}  # 元素总数
+    local num_select=$((RANDOM % num_elements + 1))  # 随机决定选取的元素数量
 
-    for ((i=0; i<${#arr[@]}; i++)); do
-        if [ $i -gt 0 ]; then
-            pg_array+=","  # 添加逗号分隔符
-        fi
-        pg_array+="\"${arr[i]}\""  # 添加元素到数组
+    # 随机选择元素
+    for ((i=0; i<num_select; i++)); do
+        local rand_index=$((RANDOM % num_elements))
+        selected_elements+=("${all_elements[rand_index]}")
+        # 防止选取重复元素
+        all_elements=( "${all_elements[@]:0:rand_index}" "${all_elements[@]:rand_index+1}" )
+        ((num_elements--))
     done
 
-    pg_array+="}"  # 结束 PostgreSQL 数组
+    # 构建 PostgreSQL 数组字符串
+    local pg_array="{"
+    for ((i=0; i<${#selected_elements[@]}; i++)); do
+        if [ $i -gt 0 ]; then
+            pg_array+=","
+        fi
+        pg_array+="\"${selected_elements[i]}\""
+    done
+    pg_array+="}"
     echo "$pg_array"
 }
 
 RANDOM=$$$(date +%s)
 
-for i in {1..10}; do
+for i in {1..100}; do
     title="Ad #$i"
     current_time=$(date -Iseconds)
     start_at=$(date -Iseconds -d "$current_time -$((RANDOM % 30)) days")
@@ -31,6 +44,7 @@ for i in {1..10}; do
     countries=('US' 'CA' 'JP' 'KR' 'DE' 'FR' 'CN' 'TW' 'GB')
     platforms=('android' 'ios' 'web')
 
+    # 从数组中随机选择元素以构建 PostgreSQL 数组
     gender=$(generate_pg_array "${genders[@]}")
     country=$(generate_pg_array "${countries[@]}")
     platform=$(generate_pg_array "${platforms[@]}")
