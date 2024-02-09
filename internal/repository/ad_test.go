@@ -49,8 +49,8 @@ func TestGetActiveAdvertisementsBasic(t *testing.T) {
         AddRow("Ad 2", now.Add(-time.Minute * 2), now.Add(time.Minute * 2))
 
     mock.ExpectQuery(regexp.QuoteMeta(
-        `SELECT title, end_at FROM "advertisements" WHERE start_at <= $1 AND end_at >= $2 ORDER BY end_at ASC LIMIT 10 OFFSET 20`)).
-        WithArgs(now, now).
+        `SELECT title, end_at FROM "advertisements" WHERE $1 BETWEEN start_at AND end_at ORDER BY end_at ASC LIMIT 10 OFFSET 20`)).
+        WithArgs(now).
         WillReturnRows(rows)
         
     adReq := dto.AdGetRequest{Offset: 20, Limit: 10}
@@ -65,8 +65,8 @@ func TestGetActiveAdvertisementsWithOptions(t *testing.T) {
 
     rows := sqlmock.NewRows([]string{"title", "end_at"}).
         AddRow("Ad 1", now)
-    mock.ExpectQuery(regexp.QuoteMeta(`SELECT title, end_at FROM "advertisements" WHERE (start_at <= $1 AND end_at >= $2) AND ($3 BETWEEN age_start AND age_end) AND gender @> $4 AND country @> $5 AND platform @> $6 ORDER BY end_at ASC LIMIT 1`)). 
-        WithArgs(now, now, 25, pq.Array([]string{"M"}), pq.Array([]string{"US"}), pq.Array([]string{"web"})).
+    mock.ExpectQuery(regexp.QuoteMeta(`SELECT title, end_at FROM "advertisements" WHERE ($1 BETWEEN start_at AND end_at) AND gender @> $2 AND country @> $3 AND platform @> $4 AND ($5 BETWEEN age_start AND age_end) ORDER BY end_at ASC LIMIT 1`)). 
+        WithArgs(now, pq.Array([]string{"M"}), pq.Array([]string{"US"}), pq.Array([]string{"web"}),25).
         WillReturnRows(rows)
     age := 25
     gender := "M"
