@@ -30,32 +30,54 @@ const docTemplate = `{
                 "summary": "Get advertisements",
                 "parameters": [
                     {
-                        "description": "Enter Advertisement Request Conditions",
-                        "name": "adGetRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.AdGetRequest"
-                        }
+                        "type": "integer",
+                        "description": "Limit\u003c1~100,default=5\u003e",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Age \u003c1~100\u003e",
+                        "name": "age",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Gender \u003cenum:M、F\u003e",
+                        "name": "gender",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Country \u003cenum:TW、JP 等符合 https://zh.wikipedia.org/wiki/ISO_3166-1 \u003e",
+                        "name": "country",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Platform \u003cenum:android, ios, web\u003e",
+                        "name": "platform",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "success",
                         "schema": {
-                            "type": "AdGetRequest"
+                            "$ref": "#/definitions/advertisement-api_internal_dto.AdGetResponse"
                         }
                     },
                     "400": {
                         "description": "{\"error\": \"params error\"}",
                         "schema": {
-                            "type": "AdGetRequest"
+                            "$ref": "#/definitions/gin.H"
                         }
                     },
                     "500": {
                         "description": "{\"error\": \"server error\"}",
                         "schema": {
-                            "type": "AdGetRequest"
+                            "$ref": "#/definitions/gin.H"
                         }
                     }
                 }
@@ -79,7 +101,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.AdCreationRequest"
+                            "$ref": "#/definitions/advertisement-api_internal_dto.AdCreationRequest"
                         }
                     }
                 ],
@@ -87,19 +109,19 @@ const docTemplate = `{
                     "200": {
                         "description": "{\"message\": \"success\"}",
                         "schema": {
-                            "type": "AdCreationRequest"
+                            "$ref": "#/definitions/gin.H"
                         }
                     },
                     "400": {
                         "description": "{\"error\": \"params error\"}",
                         "schema": {
-                            "type": "AdCreationRequest"
+                            "$ref": "#/definitions/gin.H"
                         }
                     },
                     "500": {
                         "description": "{\"error\": \"server error\"}",
                         "schema": {
-                            "type": "AdCreationRequest"
+                            "$ref": "#/definitions/gin.H"
                         }
                     }
                 }
@@ -107,7 +129,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.AdCondition": {
+        "advertisement-api_internal_dto.AdCondition": {
             "type": "object",
             "properties": {
                 "ageEnd": {
@@ -140,7 +162,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.AdCreationRequest": {
+        "advertisement-api_internal_dto.AdCreationRequest": {
             "type": "object",
             "required": [
                 "endAt",
@@ -149,7 +171,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "conditions": {
-                    "$ref": "#/definitions/dto.AdCondition"
+                    "$ref": "#/definitions/advertisement-api_internal_dto.AdCondition"
                 },
                 "endAt": {
                     "type": "string"
@@ -162,41 +184,20 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.AdGetRequest": {
+        "advertisement-api_internal_dto.AdGetResponse": {
             "type": "object",
             "properties": {
-                "age": {
-                    "type": "integer",
-                    "maximum": 100,
-                    "minimum": 1
-                },
-                "country": {
+                "endAt": {
                     "type": "string"
                 },
-                "gender": {
-                    "type": "string",
-                    "enum": [
-                        "M",
-                        "F"
-                    ]
-                },
-                "limit": {
-                    "type": "integer",
-                    "maximum": 100,
-                    "minimum": 1
-                },
-                "offset": {
-                    "type": "integer"
-                },
-                "platform": {
-                    "type": "string",
-                    "enum": [
-                        "android",
-                        "ios",
-                        "web"
-                    ]
+                "title": {
+                    "type": "string"
                 }
             }
+        },
+        "gin.H": {
+            "type": "object",
+            "additionalProperties": {}
         }
     }
 }`

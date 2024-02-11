@@ -1,5 +1,5 @@
 definitions:
-  dto.AdCondition:
+  advertisement-api_internal_dto.AdCondition:
     properties:
       ageEnd:
         maximum: 100
@@ -22,10 +22,10 @@ definitions:
           type: string
         type: array
     type: object
-  dto.AdCreationRequest:
+  advertisement-api_internal_dto.AdCreationRequest:
     properties:
       conditions:
-        $ref: '#/definitions/dto.AdCondition'
+        $ref: '#/definitions/advertisement-api_internal_dto.AdCondition'
       endAt:
         type: string
       startAt:
@@ -37,31 +37,15 @@ definitions:
     - startAt
     - title
     type: object
-  dto.AdGetRequest:
+  advertisement-api_internal_dto.AdGetResponse:
     properties:
-      age:
-        maximum: 100
-        minimum: 1
-        type: integer
-      country:
+      endAt:
         type: string
-      gender:
-        enum:
-        - M
-        - F
+      title:
         type: string
-      limit:
-        maximum: 100
-        minimum: 1
-        type: integer
-      offset:
-        type: integer
-      platform:
-        enum:
-        - android
-        - ios
-        - web
-        type: string
+    type: object
+  gin.H:
+    additionalProperties: {}
     type: object
 info:
   contact: {}
@@ -72,27 +56,43 @@ paths:
       - application/json
       description: get advertisements by params and conditions
       parameters:
-      - description: Enter Advertisement Request Conditions
-        in: body
-        name: adGetRequest
+      - description: Limit<1~100,default=5>
+        in: query
+        name: limit
         required: true
-        schema:
-          $ref: '#/definitions/dto.AdGetRequest'
+        type: integer
+      - description: Age <1~100>
+        in: query
+        name: age
+        type: integer
+      - description: Gender <enum:M、F>
+        in: query
+        name: gender
+        type: string
+      - description: Country <enum:TW、JP 等符合 https://zh.wikipedia.org/wiki/ISO_3166-1
+          >
+        in: query
+        name: country
+        type: string
+      - description: Platform <enum:android, ios, web>
+        in: query
+        name: platform
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: success
           schema:
-            type: AdGetRequest
+            $ref: '#/definitions/advertisement-api_internal_dto.AdGetResponse'
         "400":
           description: '{"error": "params error"}'
           schema:
-            type: AdGetRequest
+            $ref: '#/definitions/gin.H'
         "500":
           description: '{"error": "server error"}'
           schema:
-            type: AdGetRequest
+            $ref: '#/definitions/gin.H'
       summary: Get advertisements
       tags:
       - advertisements
@@ -106,22 +106,22 @@ paths:
         name: adCreationRequest
         required: true
         schema:
-          $ref: '#/definitions/dto.AdCreationRequest'
+          $ref: '#/definitions/advertisement-api_internal_dto.AdCreationRequest'
       produces:
       - application/json
       responses:
         "200":
           description: '{"message": "success"}'
           schema:
-            type: AdCreationRequest
+            $ref: '#/definitions/gin.H'
         "400":
           description: '{"error": "params error"}'
           schema:
-            type: AdCreationRequest
+            $ref: '#/definitions/gin.H'
         "500":
           description: '{"error": "server error"}'
           schema:
-            type: AdCreationRequest
+            $ref: '#/definitions/gin.H'
       summary: Create advertisement
       tags:
       - advertisements
