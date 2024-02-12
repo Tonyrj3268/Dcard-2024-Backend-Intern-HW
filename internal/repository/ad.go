@@ -5,6 +5,7 @@ import (
 	"advertisement-api/internal/model"
 	"time"
 
+	// "github.com/lib/pq"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
@@ -39,7 +40,6 @@ func UpdateActiveCount(db *gorm.DB) error {
 }
 func (r adRepository)GetActiveAdvertisements(now time.Time, adReq dto.AdGetRequest) ([]dto.AdGetResponse, error) {
     var ads []dto.AdGetResponse
-
     query := r.db.Model(&model.Advertisement{})
     query = query.Where("? BETWEEN start_at AND end_at", now)
     if adReq.Gender != nil{
@@ -57,7 +57,7 @@ func (r adRepository)GetActiveAdvertisements(now time.Time, adReq dto.AdGetReque
         query = query.Where("? BETWEEN age_start AND age_end", adReq.Age)
     }
     
-    err := query.Select("title, end_at").Order("end_at ASC").Offset(adReq.Offset).Limit(adReq.Limit).Find(&ads).Error
+    err := query.Order("end_at ASC").Offset(adReq.Offset).Limit(adReq.Limit).Find(&ads).Error
     return ads, err
 }
 

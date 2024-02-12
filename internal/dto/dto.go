@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -11,6 +12,9 @@ type AdGetRequest struct {
     Gender   *string `form:"gender" binding:"omitempty,oneof=M F"`
     Country  *string `form:"country" binding:"omitempty,iso3166_1_alpha2"`
     Platform *string `form:"platform" binding:"omitempty,oneof=android ios web"`
+}
+func (a *AdGetRequest) GetParams() string {
+    return fmt.Sprintf("offset=%d&limit=%d&age=%d&gender=%s&country=%s&platform=%s", a.Offset, a.Limit, *a.Age, *a.Gender, *a.Country, *a.Platform)
 }
 type AdGetResponse struct {
     Title string    `json:"title"`

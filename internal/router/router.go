@@ -17,7 +17,7 @@ func SetupRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 	gin.SetMode(gin.DebugMode)
 	r := gin.Default()
 	adRepo := repository.NewAdRepository(db)
-	adController := controller.NewAdController(adRepo)
+	adController := controller.NewAdController(adRepo, rdb)
 	
 	var group = r.Group("/api/v1") 
 	{
