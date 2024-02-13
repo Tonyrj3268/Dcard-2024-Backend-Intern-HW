@@ -1,17 +1,13 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/go-postgres
 {
-  "name": "Go & PostgreSQL",
+  "name": "Go",
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "customizations": {
     "vscode": {
-      "extensions": [
-        "esbenp.prettier-vscode",
-        "Postman.postman-for-vscode",
-        "cweijan.vscode-postgresql-client2"
-      ]
+      "extensions": ["esbenp.prettier-vscode", "Postman.postman-for-vscode"]
     }
   },
 

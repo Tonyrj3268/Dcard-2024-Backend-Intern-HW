@@ -16,7 +16,9 @@ import (
 
 	"os"
 
+	"github.com/alicebob/miniredis"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -34,16 +36,26 @@ func (m *MockAdRepository) CreateAdvertisement(ad *model.Advertisement) error {
     args := m.Called(ad)
     return args.Error(0)
 }
-
-var router *gin.Engine
-var mockAdRepo *MockAdRepository
-var adController *AdController
-
+var (
+    mr           *miniredis.Miniredis
+    router       *gin.Engine
+    mockAdRepo   *MockAdRepository
+    adController *AdController
+)
 func TestMain(m *testing.M) {
+    var err error
+    mr, err = miniredis.Run()
+    if err != nil {
+        panic(err)
+    }
+    defer mr.Close()
 	gin.SetMode(gin.TestMode)
 	router = gin.Default()
 	mockAdRepo = new(MockAdRepository)
-    adController = NewAdController(mockAdRepo)
+    redis :=  redis.NewClient(&redis.Options{
+        Addr: mr.Addr(),
+    })
+    adController = NewAdController(mockAdRepo, redis)
 	router.GET("/ad", adController.GetAd)
 	router.POST("/ad", adController.CreateAd)
 
@@ -51,7 +63,7 @@ func TestMain(m *testing.M) {
 }
 // GetAd
 func TestGetAdMultipleCases(t *testing.T) {
-
+    mr.FlushAll()
 	testCases := []struct{
 		query    string
 		expectedStatus int    // status code
@@ -87,6 +99,7 @@ func TestGetAdMultipleCases(t *testing.T) {
 }
 
 func TestCreateAd(t *testing.T) {
+    mr.FlushAll()
     testCases := []struct{
         name           string
         adCreate       dto.AdCreationRequest

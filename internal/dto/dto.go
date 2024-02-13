@@ -14,7 +14,20 @@ type AdGetRequest struct {
     Platform *string `form:"platform" binding:"omitempty,oneof=android ios web"`
 }
 func (a *AdGetRequest) GetParams() string {
-    return fmt.Sprintf("offset=%d&limit=%d&age=%d&gender=%s&country=%s&platform=%s", a.Offset, a.Limit, *a.Age, *a.Gender, *a.Country, *a.Platform)
+    params := fmt.Sprintf("offset=%d&limit=%d", a.Offset, a.Limit)
+    if a.Age != nil {
+        params = fmt.Sprintf("%s&age=%d", params, *a.Age)
+    }
+    if a.Gender != nil{
+        params = fmt.Sprintf("%s&gender=%s", params,*a.Gender)
+    }
+    if a.Country != nil{
+        params = fmt.Sprintf("%s&country=%s", params,*a.Country)
+    }
+    if a.Platform != nil{
+        params = fmt.Sprintf("%s&platform=%s", params,*a.Platform)
+    }
+    return params
 }
 type AdGetResponse struct {
     Title string    `json:"title"`

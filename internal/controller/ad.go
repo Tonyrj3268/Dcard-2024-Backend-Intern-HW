@@ -4,9 +4,11 @@ import (
 	"advertisement-api/internal/dto"
 	"advertisement-api/internal/model"
 	"advertisement-api/internal/repository"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -58,12 +60,17 @@ func(a *AdController) GetAd(c *gin.Context) {
             c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
             return
         }
-        if len(ads) > 0 {
-            adsJson, err := json.Marshal(ads)
-            if err == nil {
-                a.redis.Set(c, redisKey, adsJson, 1*time.Minute)
+        go func(ads []dto.AdGetResponse, key string){
+            ctx := context.Background()
+            if len(ads) > 0 {
+                adsJson, err := json.Marshal(ads)
+                if err == nil {
+                    a.redis.Set(ctx, key, adsJson, 1*time.Minute)
+                }
+            }else{
+                a.redis.Set(ctx, key, "[]", 1*time.Minute)
             }
-        }
+        }(ads,redisKey)
 
         c.JSON(http.StatusOK, ads)
     } else if err != nil {
@@ -72,7 +79,6 @@ func(a *AdController) GetAd(c *gin.Context) {
         var ads []dto.AdGetResponse
         err := json.Unmarshal([]byte(val), &ads)
         if err != nil {
-            fmt.Println(err)
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Error unmarshalling data"})
             return
         }
@@ -92,12 +98,27 @@ func(a *AdController) GetAd(c *gin.Context) {
 // @Failure 500 {object} gin.H "{"error": "server error"}"
 // @Router /ad [post]
 func(a *AdController) CreateAd(c *gin.Context) {
+    val, err := a.redis.Get(c, "CreatedAd").Result()
+    if err == redis.Nil {
+        a.redis.Set(c, "CreatedAd", 1, 86400)
+    } else if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "server error"})
+    } else {
+        valInt, _ := strconv.Atoi(val)
+        if valInt >= 3000 {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Today's requests are over 3000"})
+            return
+        }
+        a.redis.Incr(c, "CreatedAd")
+    }
+
     var adCreate dto.AdCreationRequest
-    err := c.ShouldBindJSON(&adCreate)
+    err = c.ShouldBindJSON(&adCreate)
     if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+        fmt.Println(err)
+        c.JSON(http.StatusBadRequest, gin.H{"error": "params error"})
+        return
+    }
 
     ad := model.Advertisement{
         Title:     adCreate.Title,
@@ -106,21 +127,14 @@ func(a *AdController) CreateAd(c *gin.Context) {
         AgeStart:  adCreate.Conditions.AgeStart,
         AgeEnd:    adCreate.Conditions.AgeEnd,
         // 避免 nil pointer dereference
-        Gender:    assignConditionValue(adCreate.Conditions.Gender),  
-        Country:   assignConditionValue(adCreate.Conditions.Country),
-        Platform:  assignConditionValue(adCreate.Conditions.Platform),
+        Gender:    model.StringArrayToString(adCreate.Conditions.Gender),  
+        Country:   model.StringArrayToString(adCreate.Conditions.Country),
+        Platform:  model.StringArrayToString(adCreate.Conditions.Platform),
     }
     if err := a.adRepository.CreateAdvertisement(&ad); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "db error"})
         return
     }
 
     c.JSON(http.StatusOK, gin.H{"message": "success"})
-}
-
-func assignConditionValue(condition *[]string) []string {
-    if condition != nil {
-        return *condition
-    }
-    return []string{}
 }

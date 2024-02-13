@@ -2,7 +2,7 @@
 
 ## Usage
 
-Golang(Gin, Gorm), Docker, PostgreSQL, Redis, NGINX, DevContainer
+Golang(Gin, Gorm), Docker, ~~PostgreSQL~~, MySQL, Redis, ~~NGINX~~, DevContainer
 
 ## Description
 
@@ -10,9 +10,9 @@ Golang(Gin, Gorm), Docker, PostgreSQL, Redis, NGINX, DevContainer
 
 [開發紀錄 - Notion](https://www.notion.so/9229affad7904f708413dc0084278e10?v=8e06f638ba244fd694a703e2eef3c113&pvs=4)
 
-**最終成果，10000qps🥳**
+**最終成果，15000qps🥳**
 
-![最終成果](./images/10000rps.png)
+![最終成果](./images/15000qps.png)
 
 ### 初期想法
 
@@ -78,7 +78,7 @@ type AdGetRequest struct {
 
 ![初級成果](./images/1500rps.png)
 
-### 後續想法
+### 中期想法
 
 1. 為了提高效能，將 GET API 資料庫查詢結果快取至 Redis
 2. 使用 NGINX 作為反向代理伺服器，以便後續擴展(最終沒用到)
@@ -141,13 +141,31 @@ else
 end
 ```
 
-## 最終成果就是 10000qps🥳
+## 成果就是 10000qps
 
-![最終成果](./images/10000rps.png)
+![成果](./images/10000rps.png)
+
+### 最終想法
+
+1. 改使用 k6 進行不同參數的壓力測試
+   - 發現 pqsql 的效能瓶頸，因此改使用 mysql
+2. 性能優化
+   - 增加 mysql open connection 數量, 並且使用 prepared statement
+   - 增加 redis pool 數量
+3. 移除 NGINX
+   - 為了繼續提高回應速度，移除 NGINX，直接使用 GOLANG 處理 Redis 查詢
+4. 添加部分計時流程
+   - 自動更新活躍廣告數量, 每日新增廣告數量歸零...
+5. 補上 Swagger API 文件
+6. 補上 Dockerfile & docker-compose
+7. 可能優化方案
+   - ~~Mysql Query 不要使用 FIND_IN_SET，改使用 JOIN，但是實驗未看出效能提升，因此沒有實作~~
+   - ~~添加 Redis Cluster，但是實驗未看出效能提升，因此沒有實作~~
+   - ~~使用 NGINX 並且多開 GOLANG 伺服器，由於硬體上限，沒有實作~~
 
 ## TODO
 
-- [ ] 完善單元測試
+- [-] 完善單元測試
 - [ ] 完善 CI/CD
-- [ ] 完善文件(API 文件)
+- [-] 完善文件(API 文件)
 - [ ] 補充安裝說明

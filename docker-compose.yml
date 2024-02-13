@@ -16,27 +16,14 @@ services:
       - db
       - redis
 
-  nginx:
-    image: openresty/openresty:latest
-    platform: linux/amd64
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - ./nginx/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf
-    depends_on:
-      - app
-    ports:
-      - "80:80"
-    networks:
-      - my_network
-
   db:
-    image: postgres:latest
+    image: mysql:latest
     restart: always
     env_file:
       - .env
     networks:
       - my_network
-    command: -c 'max_connections=1000'
+    command: --max_connections=1000
 
   redis:
     image: redis:latest

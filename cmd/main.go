@@ -14,47 +14,51 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 func main() {
+
 	if err := godotenv.Load(); err != nil {
-        panic("Error loading .env file")
-    }
-
-    dbHost := os.Getenv("POSTGRES_HOSTNAME")
-    dbUser := os.Getenv("POSTGRES_USER")
-    dbPassword := os.Getenv("POSTGRES_PASSWORD")
-    dbDatabase := os.Getenv("POSTGRES_DB")
-
-    dsn := "host=" + dbHost + " user=" + dbUser + " password=" + dbPassword + " dbname=" + dbDatabase + " sslmode=disable TimeZone=Asia/Taipei"
-    db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{PrepareStmt: true})
-    if err != nil {
-        panic(err)
-    }
-	DB, err := db.DB()
-	if err != nil {
-		panic(err)
+	    panic("Error loading .env file")
 	}
-	DB.SetMaxOpenConns(500)
-	DB.SetMaxIdleConns(100)
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		os.Getenv("MYSQL_USER"),
+		os.Getenv("MYSQL_PASSWORD"),
+		os.Getenv("MYSQL_HOST"),
+		os.Getenv("MYSQL_DATABASE"),
+	)
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		DSN: dsn,
+	}), &gorm.Config{PrepareStmt: true})
+	if err != nil {
+	    panic(err)
+	}
+	
 	if err := db.AutoMigrate(&model.Advertisement{}); err != nil {
         panic(err)
     }
-	db.Exec("CREATE INDEX IF NOT EXISTS idx_advertisements_gender ON advertisements USING gin(gender)")
-    db.Exec("CREATE INDEX IF NOT EXISTS idx_advertisements_country ON advertisements USING gin(country)")
-    db.Exec("CREATE INDEX IF NOT EXISTS idx_advertisements_platform ON advertisements USING gin(platform)")
-    rdb := redis.NewClient(&redis.Options{
-        Addr:     "redis:6379", // Redis地址
-        Password: "", // 如果設置了Redis密碼
-        DB:       0,  // 默認數據庫編號
+	DB, _ := db.DB()
+	DB.SetMaxIdleConns(100)
+	DB.SetMaxOpenConns(1000)
+	
+	redis := redis.NewClient(&redis.Options{
+        Addr:     "localhost:6379",
+        Password: "",
+        DB:       0,
+		PoolSize: 128,
     })
-	app := router.SetupRouter(db, rdb)
+	if _, err := redis.Ping(context.Background()).Result(); err != nil {
+		panic(err)
+	}
+
+	app := router.SetupRouter(db, redis)
     
     ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-    go utils.StartBackgroundTask(rdb, db, ctx)
+    go utils.StartBackgroundTask(redis, db, ctx)
     
 	go func() {
 		if err := app.Run(":8080"); err != nil {
@@ -63,7 +67,7 @@ func main() {
 	}()
 
 	<-ctx.Done()
-    fmt.Println("服務器關閉...")
+    fmt.Println("server closing...")
 
     time.Sleep(1 * time.Second)
 
