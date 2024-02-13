@@ -37,8 +37,6 @@ services:
       - ../.env
     networks:
       - my_network
-    ports:
-      - "3306:3306"
     # Add "forwardPorts": ["5432"] to **devcontainer.json** to forward PostgreSQL locally.
     # (Adding the "ports" property to this file will not forward from a Codespace.)
     command: --max_connections=1000
@@ -47,8 +45,6 @@ services:
     restart: unless-stopped
     networks:
       - my_network
-    ports:
-      - 6379:6379
 
 networks:
   my_network:
