@@ -5,8 +5,6 @@ import (
 	"advertisement-api/internal/model"
 	"time"
 
-	// "github.com/lib/pq"
-	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -42,22 +40,22 @@ func (r adRepository)GetActiveAdvertisements(now time.Time, adReq dto.AdGetReque
     var ads []dto.AdGetResponse
     query := r.db.Model(&model.Advertisement{})
     query = query.Where("? BETWEEN start_at AND end_at", now)
-    if adReq.Gender != nil{
-        query = query.Where("gender @> ?", pq.Array([]string{*adReq.Gender}))
-    }
-
-    if adReq.Country!= nil {
-        query = query.Where("country @> ?", pq.Array([]string{*adReq.Country}))
-    }
-
-    if adReq.Platform != nil{
-        query = query.Where("platform @> ?", pq.Array([]string{*adReq.Platform}))
-    }
     if adReq.Age != nil {
         query = query.Where("? BETWEEN age_start AND age_end", adReq.Age)
     }
+
+    if adReq.Gender != nil{
+        query = query.Where("FIND_IN_SET(?,gender)>0", *adReq.Gender)
+    }
+
+    if adReq.Country!= nil {
+        query = query.Where("FIND_IN_SET(?,country)>0", *adReq.Country)
+    }
+
+    if adReq.Platform != nil{
+        query = query.Where("FIND_IN_SET(?,platform)>0", *adReq.Platform)
+    }
     
-    err := query.Order("end_at ASC").Offset(adReq.Offset).Limit(adReq.Limit).Find(&ads).Error
+    err := query.Select("title, end_at").Order("end_at ASC").Offset(adReq.Offset).Limit(adReq.Limit).Find(&ads).Error
     return ads, err
 }
-

@@ -12,9 +12,8 @@ import (
 	"advertisement-api/internal/dto"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -29,12 +28,12 @@ func TestMain(m *testing.M) {
 		panic("failed to create sqlmock")
 	}
 	defer db.Close()
+    mock.ExpectQuery(regexp.QuoteMeta("SELECT VERSION()")).WillReturnRows(sqlmock.NewRows([]string{"VERSION()"}).AddRow("5.7.31"))
 
-    gormDB, err := gorm.Open(postgres.New(postgres.Config{Conn: db}), &gorm.Config{})
+    gormDB, err := gorm.Open(mysql.New(mysql.Config{Conn: db}), &gorm.Config{})
 	if err != nil {
 		panic("failed to open gorm db")
 	}
-
 
 	repo = NewAdRepository(gormDB)
 
@@ -49,7 +48,7 @@ func TestGetActiveAdvertisementsBasic(t *testing.T) {
         AddRow("Ad 2", now.Add(-time.Minute * 2), now.Add(time.Minute * 2))
 
     mock.ExpectQuery(regexp.QuoteMeta(
-        `SELECT title, end_at FROM "advertisements" WHERE $1 BETWEEN start_at AND end_at ORDER BY end_at ASC LIMIT 10 OFFSET 20`)).
+        "SELECT title, end_at FROM `advertisements` WHERE ? BETWEEN start_at AND end_at ORDER BY end_at ASC LIMIT 10 OFFSET 20")).
         WithArgs(now).
         WillReturnRows(rows)
         
@@ -65,8 +64,8 @@ func TestGetActiveAdvertisementsWithOptions(t *testing.T) {
 
     rows := sqlmock.NewRows([]string{"title", "end_at"}).
         AddRow("Ad 1", now)
-    mock.ExpectQuery(regexp.QuoteMeta(`SELECT title, end_at FROM "advertisements" WHERE ($1 BETWEEN start_at AND end_at) AND gender @> $2 AND country @> $3 AND platform @> $4 AND ($5 BETWEEN age_start AND age_end) ORDER BY end_at ASC LIMIT 1`)). 
-        WithArgs(now, pq.Array([]string{"M"}), pq.Array([]string{"US"}), pq.Array([]string{"web"}),25).
+    mock.ExpectQuery(regexp.QuoteMeta("SELECT title, end_at FROM `advertisements` WHERE (? BETWEEN start_at AND end_at) AND (? BETWEEN age_start AND age_end) AND FIND_IN_SET(?,gender)>0 AND FIND_IN_SET(?,country)>0 AND FIND_IN_SET(?,platform)>0  ORDER BY end_at ASC LIMIT 1")). 
+        WithArgs(now, 25, "M", "US", "web").
         WillReturnRows(rows)
     age := 25
     gender := "M"

@@ -17,6 +17,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -43,7 +44,8 @@ func TestMain(m *testing.M) {
 	gin.SetMode(gin.TestMode)
 	router = gin.Default()
 	mockAdRepo = new(MockAdRepository)
-    adController = NewAdController(mockAdRepo)
+    redis :=  redis.NewClient(&redis.Options{})
+    adController = NewAdController(mockAdRepo, redis)
 	router.GET("/ad", adController.GetAd)
 	router.POST("/ad", adController.CreateAd)
 
